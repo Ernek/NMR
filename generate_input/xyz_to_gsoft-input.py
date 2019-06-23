@@ -40,8 +40,12 @@ def u_slugify(txt):
 
 def get_bse_local(loc_basis, element):
         """A function to extract element basis sets data from local EMSL database located 
-        in /Users/ernesto/Main/Programming/Git/emsl_basis_set_library/gbs """
+        in i.e /Users/ernesto/Main/Programming/Git/emsl_basis_set_library/gbs """
+
+        #Define the address of the Basis Sets Database
         addrs = '/Users/ernesto/Main/Programming/Git/emsl_basis_set_library/gbs/'
+
+
         with open(addrs + str(loc_basis) + '.gbs', 'r') as fbasis:
             lines = fbasis.readlines()
             #print(fbasis.readlines())
@@ -115,7 +119,7 @@ def main(fname, charge, spin, key_run_01):
         add_val.append(str(k[0])+k[1]+'('+k[2]+','+k[3]+')')
         add_val.append(str(k[0])+'+'+k[1]+'('+k[2]+','+k[3]+')')
         add_val.append(str(k[0])+'++'+k[1]+'('+k[2]+','+k[3]+')')  
-        print(add_val)
+        #print(add_val)
     
     for key,val in basis_sets.items():
         if key == 'pople':
@@ -191,9 +195,20 @@ def main(fname, charge, spin, key_run_01):
     
     
     #%%
-    
-    
-    cwd = os.getcwd()  # get Current Working Directory
+    cwd0 = os.getcwd()  # get Current Working Directory
+    outputdir = 'output_files'
+    try:
+        # print(str(cwd)+'/'+i)
+        os.makedirs(str(cwd0) + '/' + outputdir)
+    except FileExistsError:
+        # directory already exists
+        pass
+
+    os.chdir(str(cwd0) + '/' + outputdir)
+
+    cwd = os.getcwd()
+
+
     #directory = os.path.dirname(fpath)
     #fname = 'xyz_file.xyz'
     #print(cwd)
@@ -202,7 +217,7 @@ def main(fname, charge, spin, key_run_01):
     # Initializing input file reading and outputting file
     
     
-    with open(fname, 'r') as f:
+    with open(str(cwd0) +'/'+ fname, 'r') as f:
         cnt = 0
         a = []
         for line in f:
