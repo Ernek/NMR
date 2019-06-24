@@ -256,6 +256,7 @@ def main(fname, charge, spin, key_run_01):
                                     + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify(trail_basis_type + str(k)) + '\n\n'
                                     + str(charge) + ' ' + str(spin) + '\n'
                                     + "".join(map(str, a))
+                                    + '\n'
                                     + bse.get_basis(j, fmt='gaussian94', elements=['Al'], header=False)
                                     + bse.get_basis(trail_basis_type + str(k), fmt='gaussian94', elements=['H', 'O'], header=False)
                                     + '\n'
@@ -294,9 +295,9 @@ def main(fname, charge, spin, key_run_01):
                                     + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '\n\n'
                                     + str(charge) + ' ' + str(spin) + '\n'
                                     + "".join(map(str, a))
+                                    + '\n'
                                     + bse.get_basis(j, fmt='gaussian94', elements=['Al'], header=False)
-                                    + bse.get_basis('aug-' + trail_basis_type + str(k), fmt='gaussian94', elements=['H', 'O'],
-                                                    header=False)
+                                    + bse.get_basis('aug-' + trail_basis_type + str(k), fmt='gaussian94', elements=['H', 'O'], header=False)
                                     + '\n'
                                 )
                             sub_fname = 'sub_g09' + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '.slurm'
@@ -343,6 +344,7 @@ def main(fname, charge, spin, key_run_01):
                                 j) + '\n\n'
                                          + str(charge) + ' ' + str(spin) + '\n'
                                          + "".join(map(str, a))
+                                         + '\n'
                                          + bse.get_basis(j, fmt='gaussian94', elements=['H', 'O', 'Al'], header=False)
                                          + '\n'
                                          )
@@ -391,6 +393,7 @@ def main(fname, charge, spin, key_run_01):
                                 j) + '\n\n'
                                          + str(charge) + ' ' + str(spin) + '\n'
                                          + "".join(map(str, a))
+                                         + '\n'
                                          + bse.get_basis(j, fmt='gaussian94', elements=['H', 'O', 'Al'], header=False)
                                          + '\n'
                                          )
@@ -452,6 +455,7 @@ def main(fname, charge, spin, key_run_01):
                                             + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) +'_' + u_slugify(p) + '\n\n' 
                                             + str(charge) + ' ' + str(spin) + '\n'                             
                                             + "".join(map(str, a))
+                                            + '\n'
                                             + "".join(map(str,al_bse))
                                             + '****\n'
                                             + "".join(map(str,o_bse))
@@ -499,6 +503,7 @@ def main(fname, charge, spin, key_run_01):
                                             + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + dplus +'_' + u_slugify(p) + '\n\n' 
                                             + str(charge) + ' ' + str(spin) + '\n'                             
                                             + "".join(map(str, a))
+                                            + '\n'
                                             + "".join(map(str,al_bse_dplus))
                                             + '****\n'
                                             + "".join(map(str,o_bse))
@@ -556,6 +561,7 @@ def main(fname, charge, spin, key_run_01):
                                             + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) +'_' + u_slugify(p) + '\n\n' 
                                             + str(charge) + ' ' + str(spin) + '\n'                             
                                             + "".join(map(str, a))
+                                            + '\n'
                                             + "".join(map(str,al_bse))
                                             + '****\n'
                                             + "".join(map(str,o_bse))
