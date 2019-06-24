@@ -48,21 +48,11 @@ def get_bse_local(loc_basis, element):
 
         with open(addrs + str(loc_basis) + '.gbs', 'r') as fbasis:
             lines = fbasis.readlines()
-            #print(fbasis.readlines())
-            #tlines = fbasis.readlines()
             bs_list = []
-            #tlines = fbasis.readlines()
-            #print(tlines)
             for i in range(len(lines)):
-                #print(index, line.split()[0])
                 if lines[i].split()[0] == str('-') + element:
-                    #print('ok', lines[i])
-                    #print(i)
                     oidx = i
-                    #print(oidx)
-                    #print(lines[oidx])
                     oline = lines[oidx]
-                    #print(oline)
                     while not oline.split()[0] == '****':
                         bs_list.append(oline)
                         oidx += 1
@@ -72,45 +62,33 @@ def get_bse_local(loc_basis, element):
                         
         return bs_list
     
-
-    
-
 #%%
         
 def main(fname, charge, spin, key_run_01):
-    
-    
-    
-    
+
     # Calculation parameters
-    
-    
-    
+
     #charge = -1
     #spin = 1
     #key_run_01 = 'nmr'
     key_method_01 = 'giao'
     
-    
-    
-    
+
     #Create dictionary with QM methods to be used in Gaussian calculation
-    
-      
-        
-        
-    #print(plus)
-    
-    functionals = {'hf': ['hf'],
-                   'mp2': ['mp2'],
-                   'hybrid': ['b3lyp', 'pbe0'],
-                   'gga': ['pbe','blyp']
-                  }
+
+    functionals = {'hf': ['hf']}
+                   #'mp2': ['mp2'],
+                   #'hybrid': ['b3lyp', 'pbe0'],
+                   #'gga': ['pbe','blyp']
+                   #}
+
     #Create dictionary with basis sets to explore with each QM method
     basis_sets = {'pople': ['6-31G', '6-31G(d)','6-31+G', '6-31++G'],
                   'dunning':[],
                   'jensen': [],
-                  'core_valence': []
+                  'core_valence': [],
+                  'karlsruhe': [],
+                  'jorge': []
                  }
     
     pople_basis_no_d = list(itertools.product(['6-31'],['G'],['d','2d','3d','3df'],['p','2p','3p','3pd']))
@@ -180,25 +158,40 @@ def main(fname, charge, spin, key_run_01):
                     continue
         else:
             continue
-            
-    #print(u_slugify('6-311++G(d,p)'))
-    #print(basis_sets)    
-    ###print(functionals.items())
-    
-    
-    #%%
-    
-    
-    #for key, val in basis_sets.items():
-    #    for h in val:
-    #        print(u_slugify(h))
-    
-    
+
+    karlsruhe_basis = list(itertools.product(['def2-'], ['svp', 'tzvp', 'tzvpp', 'qzvp', 'qzvpp'], ['d']))
+    add_val = []
+    for k in karlsruhe_basis:
+        add_val.append(str(k[0]+k[1]))
+        add_val.append(str(k[0]+k[1])+k[2])
+
+    for key,val in basis_sets.items():
+        if key == 'karlsruhe':
+            for p in add_val:
+                if p not in val:
+                    basis_sets[key].append(p)
+                else:
+                    continue
+
+    jorge_basis = list(itertools.product(['jorge-'], ['dzp', 'tzp', 'qzp', '5zp']))
+    add_val = []
+    for k in jorge_basis:
+        add_val.append(str(k[0]+k[1]))
+
+    for key,val in basis_sets.items():
+        if key == 'jorge':
+            for p in add_val:
+                if p not in val:
+                    basis_sets[key].append(p)
+                else:
+                    continue
+
+    #print(basis_sets)
+
     #%%
     cwd0 = os.getcwd()  # get Current Working Directory
     outputdir = 'output_files'
     try:
-        # print(str(cwd)+'/'+i)
         os.makedirs(str(cwd0) + '/' + outputdir)
     except FileExistsError:
         # directory already exists
@@ -209,11 +202,6 @@ def main(fname, charge, spin, key_run_01):
     cwd = os.getcwd()
 
 
-    #directory = os.path.dirname(fpath)
-    #fname = 'xyz_file.xyz'
-    #print(cwd)
-    
-    
     # Initializing input file reading and outputting file
     
     
@@ -230,12 +218,10 @@ def main(fname, charge, spin, key_run_01):
                 a.append(line)
                 cnt += 1 
     
-    
-                
+
     for fkey,fval in functionals.items():
         for i in fval:
             try:
-                #print(str(cwd)+'/'+i)
                 os.makedirs(str(cwd)+'/'+i)
             except FileExistsError:
                 #directory already exists
@@ -243,7 +229,6 @@ def main(fname, charge, spin, key_run_01):
             
             for bkey,bval in basis_sets.items():
                 try:
-                    #print(str(cwd)+ '/' + i + '/' + bkey)
                     os.makedirs(str(cwd)+ '/' + i + '/' + bkey)
                 except FileExistsError:
                     #directory already exists
@@ -251,53 +236,195 @@ def main(fname, charge, spin, key_run_01):
                 if bkey == 'jensen':  #If the basis sets is Jensen type, read it from the database and put it explicitely at the end of the input
                     for j in bval:
                         try:
-                            #print(str(cwd)+ '/' + i + '/' + bkey + '/' + u_slugify(j))
                             os.makedirs(str(cwd)+ '/' + i + '/' + bkey + '/' + u_slugify(j))
                         except FileExistsError:
                             #directory already exists
                             pass
-                        out_fname = str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '.com'
+                        #out_fname = str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '.com'
                         os.chdir(str(cwd)+ '/' + i + '/' + bkey + '/' + u_slugify(j))
+                        trail_basis_type = f'{j[:-1]}'
+                        if trail_basis_type[0] == 'a':
+                            trail_basis_type = f'{j[4:-1]}'
+
+                        #print(trail_basis_type)
+                        for k in range(5):
+                            out_fname = str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify(trail_basis_type + str(k)) + '.com'
+                            with open(out_fname, 'w') as output:
+                                output.write(
+                                    '%chk=' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify(trail_basis_type + str(k)) + '\n'
+                                    + f"#P {key_run_01}={key_method_01} {i}/Gen"
+                                    + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify(trail_basis_type + str(k)) + '\n\n'
+                                    + str(charge) + ' ' + str(spin) + '\n'
+                                    + "".join(map(str, a)) + '\n'
+                                    + bse.get_basis(j, fmt='gaussian94', elements=['Al'], header=False)
+                                    + bse.get_basis(trail_basis_type + str(k), fmt='gaussian94', elements=['H', 'O'], header=False)
+                                    + '\n'
+                                    )
+                            sub_fname = 'sub_g09' + '_' + u_slugify(trail_basis_type + str(k)) + '.slurm'
+                            with open(sub_fname, 'w') as sub_out:
+                                sub_out.write('#!/bin/bash' +'\n'
+                                              +'#SBATCH --job-name=' + i + '_' + slugify(j) + '_' + u_slugify(trail_basis_type + str(k)) + '   ###Job Name' + '\n'
+                                              +'#SBATCH --partition=clark,kamiak,cas  ###Partition on which to run' + '\n'
+                                              +'#SBATCH --nodes=1           ###Number of nodes to use' +'\n'
+                                              +'#SBATCH --ntasks-per-node=1 ###Number of tasks per node (aka MPI processes)' +'\n'
+                                              +'#SBATCH --cpus-per-task=20   ###Number of cpus per task (aka OpenMP threads)' +'\n'
+                                              +'#SBATCH --time=7-00:00:00' + '\n'
+                                              +'##SBATCH --array=1-500  ##Array indexes ' + '\n'
+                                              +'module load gaussian' + '\n'
+                                              +'# Name of your com file' +'\n'
+                                              +'#JobFile=$1' +'\n'
+                                              +'\n'
+                                              +'finit=' + '"' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify(trail_basis_type + str(k)) + '"' + '\n'
+                                              +'fend=' + '"' + '.com' + '"' + '\n'
+                                              +'foutend=' + '"'+ '.out' + '"' +'\n'
+                                              +'#index=$1' +'\n'
+                                              +'\n'
+                                              +'export GAUSS_SCRDIR="$(mkworkspace -q)" ' +'\n'
+                                              +'#g09 < ${1}.com > ${1}.out' +'\n'
+                                              +'#g09 < ${finit}${index}${fend} > ${finit}${index}${foutend}' + '\n'
+                                              +'g09 < ${finit}${fend} > ${finit}${foutend}' + '\n'
+                                              +'\n'
+                                            )
+
+                            out_fname = str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '.com'
+                            with open(out_fname, 'w') as output:
+                                output.write(
+                                    '%chk=' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '\n'
+                                    + f"#P {key_run_01}={key_method_01} {i}/Gen"
+                                    + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '\n\n'
+                                    + str(charge) + ' ' + str(spin) + '\n'
+                                    + "".join(map(str, a)) + '\n'
+                                    + bse.get_basis(j, fmt='gaussian94', elements=['Al'], header=False)
+                                    + bse.get_basis('aug-' + trail_basis_type + str(k), fmt='gaussian94', elements=['H', 'O'],
+                                                    header=False)
+                                    + '\n'
+                                )
+                            sub_fname = 'sub_g09' + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '.slurm'
+                            with open(sub_fname, 'w') as sub_out:
+                                sub_out.write('#!/bin/bash' + '\n'
+                                              + '#SBATCH --job-name=' + i + '_' + slugify(j) + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '   ###Job Name' + '\n'
+                                              + '#SBATCH --partition=clark,kamiak,cas  ###Partition on which to run' + '\n'
+                                              + '#SBATCH --nodes=1           ###Number of nodes to use' + '\n'
+                                              + '#SBATCH --ntasks-per-node=1 ###Number of tasks per node (aka MPI processes)' + '\n'
+                                              + '#SBATCH --cpus-per-task=20   ###Number of cpus per task (aka OpenMP threads)' + '\n'
+                                              + '#SBATCH --time=7-00:00:00' + '\n'
+                                              + '##SBATCH --array=1-500  ##Array indexes ' + '\n'
+                                              + 'module load gaussian' + '\n'
+                                              + '# Name of your com file' + '\n'
+                                              + '#JobFile=$1' + '\n'
+                                              + '\n'
+                                              + 'finit=' + '"' + str(fname).rpartition('.')[
+                                                  0] + '_' + i + '_' + u_slugify(j) + '_' + u_slugify('aug-' + trail_basis_type + str(k)) + '"' + '\n'
+                                              + 'fend=' + '"' + '.com' + '"' + '\n'
+                                              + 'foutend=' + '"' + '.out' + '"' + '\n'
+                                              + '#index=$1' + '\n'
+                                              + '\n'
+                                              + 'export GAUSS_SCRDIR="$(mkworkspace -q)" ' + '\n'
+                                              + '#g09 < ${1}.com > ${1}.out' + '\n'
+                                              + '#g09 < ${finit}${index}${fend} > ${finit}${index}${foutend}' + '\n'
+                                              + 'g09 < ${finit}${fend} > ${finit}${foutend}' + '\n'
+                                              + '\n'
+                                              )
+                        os.chdir(cwd)
+                elif bkey == 'karlsruhe': #If the basis sets is Karlsruhe type, read it from the MOLSSI atabase and put it explicitely at the end of the input
+                    for j in bval:
+                        try:
+                            os.makedirs(str(cwd) + '/' + i + '/' + bkey + '/' + u_slugify(j))
+                        except FileExistsError:
+                            # directory already exists
+                            pass
+                        #al_bse = get_bse_local(j, 'Al')
+                        out_fname = str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '.com'
+                        os.chdir(str(cwd) + '/' + i + '/' + bkey + '/' + u_slugify(j))
                         with open(out_fname, 'w') as output:
                             output.write('%chk=' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '\n'
-                                        + f"#P {key_run_01}={key_method_01} {i}/Gen"                              
-                                        + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '\n\n' 
-                                        + str(charge) + ' ' + str(spin) + '\n'                             
-                                        + "".join(map(str, a)) + '\n'
-                                        + bse.get_basis(j, fmt='gaussian94', elements=['H','O','Al'],header=False)
-                                        + '\n'
-                                    )
-                        
+                                         + f"#P {key_run_01}={key_method_01} {i}/Gen"
+                                         + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(
+                                j) + '\n\n'
+                                         + str(charge) + ' ' + str(spin) + '\n'
+                                         + "".join(map(str, a)) + '\n'
+                                         + bse.get_basis(j, fmt='gaussian94', elements=['H', 'O', 'Al'], header=False)
+                                         + '\n'
+                                         )
+
                         sub_fname = 'sub_g09.slurm'
                         with open(sub_fname, 'w') as sub_out:
-                            sub_out.write('#!/bin/bash' +'\n'                                   
-                                          +'#SBATCH --job-name=' + i + '_' + slugify(j) + '   ###Job Name' + '\n'
-                                          +'#SBATCH --partition=clark,kamiak,cas  ###Partition on which to run' + '\n'
-                                          +'#SBATCH --nodes=1           ###Number of nodes to use' +'\n'
-                                          +'#SBATCH --ntasks-per-node=1 ###Number of tasks per node (aka MPI processes)' +'\n'
-                                          +'#SBATCH --cpus-per-task=20   ###Number of cpus per task (aka OpenMP threads)' +'\n'
-                                          +'#SBATCH --time=7-00:00:00' + '\n'
-                                          +'##SBATCH --array=1-500  ##Array indexes ' + '\n'
-                                          +'module load gaussian' + '\n'
-                                          +'# Name of your com file' +'\n'
-                                          +'#JobFile=$1' +'\n'
-                                          +'\n'
-                                          +'finit=' + '"' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '"' + '\n'
-                                          +'fend=' + '"' + '.com' + '"' + '\n'
-                                          +'foutend=' + '"'+ '.out' + '"' +'\n'
-                                          +'#index=$1' +'\n'
-                                          +'\n'
-                                          +'export GAUSS_SCRDIR="$(mkworkspace -q)" ' +'\n'
-                                          +'#g09 < ${1}.com > ${1}.out' +'\n'     
-                                          +'#g09 < ${finit}${index}${fend} > ${finit}${index}${foutend}' + '\n'      
-                                          +'g09 < ${finit}${fend} > ${finit}${foutend}' + '\n'                     
-                                          +'\n'
-                                        )
+                            sub_out.write('#!/bin/bash' + '\n'
+                                          + '#SBATCH --job-name=' + i + '_' + slugify(j) + '   ###Job Name' + '\n'
+                                          + '#SBATCH --partition=clark,cas  ###Partition on which to run' + '\n'
+                                          + '#SBATCH --nodes=1           ###Number of nodes to use' + '\n'
+                                          + '#SBATCH --ntasks-per-node=1 ###Number of tasks per node (aka MPI processes)' + '\n'
+                                          + '#SBATCH --cpus-per-task=20   ###Number of cpus per task (aka OpenMP threads)' + '\n'
+                                          + '#SBATCH --time=7-00:00:00' + '\n'
+                                          + '##SBATCH --array=1-500  ##Array indexes ' + '\n'
+                                          + 'module load gaussian' + '\n'
+                                          + '# Name of your com file' + '\n'
+                                          + '#JobFile=$1' + '\n'
+                                          + '\n'
+                                          + 'finit=' + '"' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(
+                                j) + '"' + '\n'
+                                          + 'fend=' + '"' + '.com' + '"' + '\n'
+                                          + 'foutend=' + '"' + '.out' + '"' + '\n'
+                                          + '#index=$1' + '\n'
+                                          + '\n'
+                                          + 'export GAUSS_SCRDIR="$(mkworkspace -q)" ' + '\n'
+                                          + '#g09 < ${1}.com > ${1}.out' + '\n'
+                                          + '#g09 < ${finit}${index}${fend} > ${finit}${index}${foutend}' + '\n'
+                                          + 'g09 < ${finit}${fend} > ${finit}${foutend}' + '\n'
+                                          + '\n'
+                                          )
+                        os.chdir(cwd)
+                elif bkey == 'jorge': #If the basis sets is Jorge type, read it from the MOLSSI atabase and put it explicitely at the end of the input
+                    for j in bval:
+                        try:
+                            os.makedirs(str(cwd) + '/' + i + '/' + bkey + '/' + u_slugify(j))
+                        except FileExistsError:
+                            # directory already exists
+                            pass
+                        #al_bse = get_bse_local(j, 'Al')
+                        out_fname = str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '.com'
+                        os.chdir(str(cwd) + '/' + i + '/' + bkey + '/' + u_slugify(j))
+                        with open(out_fname, 'w') as output:
+                            output.write('%chk=' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(j) + '\n'
+                                         + f"#P {key_run_01}={key_method_01} {i}/Gen"
+                                         + '\n\n' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(
+                                j) + '\n\n'
+                                         + str(charge) + ' ' + str(spin) + '\n'
+                                         + "".join(map(str, a)) + '\n'
+                                         + bse.get_basis(j, fmt='gaussian94', elements=['H', 'O', 'Al'], header=False)
+                                         + '\n'
+                                         )
+
+                        sub_fname = 'sub_g09.slurm'
+                        with open(sub_fname, 'w') as sub_out:
+                            sub_out.write('#!/bin/bash' + '\n'
+                                          + '#SBATCH --job-name=' + i + '_' + slugify(j) + '   ###Job Name' + '\n'
+                                          + '#SBATCH --partition=clark,cas  ###Partition on which to run' + '\n'
+                                          + '#SBATCH --nodes=1           ###Number of nodes to use' + '\n'
+                                          + '#SBATCH --ntasks-per-node=1 ###Number of tasks per node (aka MPI processes)' + '\n'
+                                          + '#SBATCH --cpus-per-task=20   ###Number of cpus per task (aka OpenMP threads)' + '\n'
+                                          + '#SBATCH --time=7-00:00:00' + '\n'
+                                          + '##SBATCH --array=1-500  ##Array indexes ' + '\n'
+                                          + 'module load gaussian' + '\n'
+                                          + '# Name of your com file' + '\n'
+                                          + '#JobFile=$1' + '\n'
+                                          + '\n'
+                                          + 'finit=' + '"' + str(fname).rpartition('.')[0] + '_' + i + '_' + u_slugify(
+                                j) + '"' + '\n'
+                                          + 'fend=' + '"' + '.com' + '"' + '\n'
+                                          + 'foutend=' + '"' + '.out' + '"' + '\n'
+                                          + '#index=$1' + '\n'
+                                          + '\n'
+                                          + 'export GAUSS_SCRDIR="$(mkworkspace -q)" ' + '\n'
+                                          + '#g09 < ${1}.com > ${1}.out' + '\n'
+                                          + '#g09 < ${finit}${index}${fend} > ${finit}${index}${foutend}' + '\n'
+                                          + 'g09 < ${finit}${fend} > ${finit}${foutend}' + '\n'
+                                          + '\n'
+                                          )
                         os.chdir(cwd)
                 elif  bkey == 'dunning':
                     for j in bval:
                         try:
-                            #print(str(cwd)+ '/' + i + '/' + bkey + '/' + u_slugify(j))
                             os.makedirs(str(cwd)+ '/' + i + '/' + bkey + '/' + u_slugify(j))
                         except FileExistsError:
                             #directory already exists
@@ -309,7 +436,6 @@ def main(fname, charge, spin, key_run_01):
                         al_bse_dplus = get_bse_local(dplus,'Al')
                         
                         try:
-                            #print(str(cwd)+ '/' + i + '/' + bkey + '/' + u_slugify(j))
                             os.makedirs(str(cwd)+ '/' + i + '/' + bkey + '/' + dplus)
                         except FileExistsError:
                             #directory already exists
