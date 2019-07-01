@@ -83,7 +83,8 @@ def main(fname, charge, spin, key_run_01):
                    #}
 
     #Create dictionary with basis sets to explore with each QM method
-    basis_sets = {'pople': ['6-31G', '6-31G(d)','6-31+G', '6-31++G'],
+    basis_sets = {'pople': ['6-31G','6-31+G', '6-31++G','6-31G(d)','6-31+G(d)','6-31++G(d)',
+                            '6-311G','6-311+G', '6-311++G','6-311G(d)','6-311+G(d)','6-311++G(d)',],
                   'dunning':[],
                   'jensen': [],
                   'core_valence': [],
@@ -96,7 +97,10 @@ def main(fname, charge, spin, key_run_01):
     for k in pople_basis_no_d:
         add_val.append(str(k[0])+k[1]+'('+k[2]+','+k[3]+')')
         add_val.append(str(k[0])+'+'+k[1]+'('+k[2]+','+k[3]+')')
-        add_val.append(str(k[0])+'++'+k[1]+'('+k[2]+','+k[3]+')')  
+        add_val.append(str(k[0])+'++'+k[1]+'('+k[2]+','+k[3]+')')
+        add_val.append(str(k[0]) + '1' + k[1] + '(' + k[2] + ',' + k[3] + ')')
+        add_val.append(str(k[0]) + '1' + '+' + k[1] + '(' + k[2] + ',' + k[3] + ')')
+        add_val.append(str(k[0]) + '1' + '++' + k[1]+ '(' + k[2] + ',' + k[3] + ')')
         #print(add_val)
     
     for key,val in basis_sets.items():
