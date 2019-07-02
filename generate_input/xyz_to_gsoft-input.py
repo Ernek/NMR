@@ -130,9 +130,9 @@ def main(fname, charge, spin, key_run_01):
     jensen_basis = list(itertools.product(['pc'],['-' + str(i) for i in range(5)]))
     add_val = []
     for k in jensen_basis:
-        add_val.append(str(k[0]+k[1]))
+        #add_val.append(str(k[0]+k[1]))
         add_val.append(str(k[0]+'s'+k[1]))
-        add_val.append(str(k[0]+'sseg'+k[1]))
+        #add_val.append(str(k[0]+'sseg'+k[1]))
     
     for l in range(len(add_val)):
         add_val.append('aug-' + add_val[l])
